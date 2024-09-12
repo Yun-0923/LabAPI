@@ -1,0 +1,53 @@
+﻿@model IEnumerable<LabAPI.Models.Cornonavirus>
+
+@{
+    ViewData["Title"] = "Cornonavirus";
+}
+
+<h1 class="my-3 text-center">全國各年齡層SARS-CoV2確診人數</h1>
+
+<table class="table table-striped table-hover border border-1">
+    <thead class="table-primary text-center border border-1 border-dark fw-bold">
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.a01)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.a02)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.a03)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.a04)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.a05)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody class="text-center">
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.a01)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.a02)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.a03)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.a04)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.a05)
+            </td>
+            <td>
+            </td>
+        </tr>
+}
+    </tbody>
+</table>

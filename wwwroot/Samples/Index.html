@@ -1,0 +1,410 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>樣本資料管理</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+</head>
+<body>
+    <nav class="navbar navbar-expand-md navbar-dark bg-dark border-bottom box-shadow mb-3">
+        <div class="container">
+            <a class="navbar-brand" href="#">樣本管理系統</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" aria-current="page" href="/Samples/Index.html">樣本資料管理</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/SampleType/Index.html">類型管理</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="../CornonavirusForView/Index">新冠確診統計</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <div class="container mt-3">
+        <div class="row">
+            <div class="col-3">
+                <h4 class="text-center">類型</h4>
+                <div class="list-group" id="SampleTypeList">
+
+                </div>
+            </div>
+            <div class="col-9">
+                <h2 class="text-center text-success" id="sampleTitle"></h2>
+                <button class="btn btn-primary my-3" data-bs-toggle="modal" data-bs-target="#dataManageModal">
+                    新增樣本
+                </button>
+                <table class="table table-striped table-hover border border-1" id="SampleList">
+                    <thead class="table-primary text-center border border-1 border-dark fw-bold">
+                        <tr>
+                            <th>名稱</th>
+                            <th>物種</th>
+                            <th>基因型</th>
+                            <th>血清型</th>
+                            <th>數量</th>
+                            <th>管理</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-center">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <!-- Modal -->
+    <div class="modal fade" id="dataManageModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="exampleModalLabel"></h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn" id="btnUpdate"></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!--拿來存取值的地方-->
+    <input type="hidden" id="typeID"></input>
+    <input type="hidden" id="typeName"></input>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <script>
+        //初始化頁面
+        getSampleList("1", "Bacteria");
+        getSampleTypeList();
+
+        let modalForm = `
+                                        <form id="dataManageForm">
+                                            <div class="row">
+                            <div class="col-md-12 g-0">
+                                <div class="card">
+                                    <div class="card-header bg-success text-white text-center fs-5 fw-bold">
+                                        基本資料
+                                    </div>
+                                    <div class="card-body text-primary fw-bold">
+                                        <div class="form-group">
+                                            <input type="hidden" class="form-control" id="SampleID" name="SampleID" />
+                                            <span asp-validation-for="SampleID" class="text-danger"></span>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="TypeID" class="control-label">類型</label>
+                                            <select class="form-control" id="TypeID" name="TypeID"></select>
+                                            <span asp-validation-for="TypeID" class="text-danger"></span>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="SampleName" class="control-label">名稱</label>
+                                            <input type="text" class="form-control" id="SampleName" name="SampleName"/>
+                                            <span asp-validation-for="SampleName" class="text-danger"></span>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="Species" class="control-label">物種</label>
+                                            <input type="text" class="form-control" id="Species" name="Species"/>
+                                            <span asp-validation-for="Species" class="text-danger"></span>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-6">
+                                                <div class="form-group">
+                                                    <label for="Genotype" class="control-label">基因型</label>
+                                                    <input type="text" class="form-control" id="Genotype" name="Genotype"/>
+                                                    <span asp-validation-for="Genotype" class="text-danger"></span>
+                                                </div>
+                                            </div>
+                                            <div class="col-6">
+                                                <div class="form-group">
+                                                    <label for="Serotype" class="control-label">血清型</label>
+                                                    <input type="number" class="form-control" id="Serotype" name="Serotype"/>
+                                                    <span asp-validation-for="Serotype" class="text-danger"></span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="Quantity" class="control-label">數量</label>
+                                            <input type="number" class="form-control" id="Quantity" name="Quantity"/>
+                                            <span asp-validation-for="Quantity" class="text-danger"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-12 g-1">
+                                <div class="card">
+                                    <div class="card-header bg-success text-white text-center fs-5 fw-bold">
+                                        存放位置
+                                    </div>
+                                    <div class="card-body text-primary fw-bold">
+                                        <div class="row">
+                                            <div class="form-group col-md">
+                                                <label for="Refrigerator" class="control-label">冰箱編號</label>
+                                                <input type="text" class="form-control" id="Refrigerator" name="Refrigerator"/>
+                                                <span asp-validation-for="Refrigerator" class="text-danger"></span>
+                                            </div>
+                                            <div class="form-group col-md">
+                                                <label for="Level" class="control-label">層號</label>
+                                                <input type="number" class="form-control" id="Level" name="Level"/>
+                                                <span asp-validation-for="Level" class="text-danger"></span>
+                                            </div>
+                                            <div class="form-group col-md">
+                                                <label for="Shelf" class="control-label">架號</label>
+                                                <input type="number" class="form-control" id="Shelf" name="Shelf"/>
+                                                <span asp-validation-for="Shelf" class="text-danger"></span>
+                                            </div>
+                                            <div class="form-group col-md">
+                                                <label for="Box" class="control-label">盒號</label>
+                                                <input type="number" class="form-control" id="Box" name="Box"/>
+                                                <span asp-validation-for="Box" class="text-danger"></span>
+                                            </div>
+                                            </div>
+                                            <div class="form-group col-md">
+                                                <label for="BoxName" class="control-label">盒子名稱</label>
+                                                <input type="text" class="form-control"  id="BoxName" name="BoxName"/>
+                                                <span asp-validation-for="BoxName" class="text-danger"></span>
+                                            </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                                        </form>`
+
+        const dataManageModalEl = document.getElementById('dataManageModal');
+        const dataManageModal = new bootstrap.Modal(dataManageModalEl);
+
+        //按下新增類型按鈕後，modal視窗出現的內容 (監聽modal出現時)
+        dataManageModalEl.addEventListener('show.bs.modal', event => {
+            $('#dataManageModal .modal-title').text("新增樣本資料");
+            $('#dataManageModal .modal-body').html(modalForm);
+            $('#btnUpdate').addClass("btn-primary").text("確定新增").attr("onclick", "createData()");
+            getSampleListForModify($('#typeID').val());
+        })
+
+        //取出所有樣本類型資料
+        function getSampleTypeList() {
+            $.ajax({
+                type: "Get",
+                url: "http://localhost:5042/apiSampleTypes",
+                success: (data) => {
+                    $('#SampleTypeList').empty();
+
+                    let trItem = "";
+                    for (let item of data) {
+                        trItem = ` <button class="list-group-item list-group-item-action" onclick="getSampleList('${item.typeID}','${item.typeName}')">${item.typeName}</button>`
+                        //按下按鈕要呼叫 getSampleList()，並且傳參數
+
+                        $('#SampleTypeList').append(trItem);
+                    }
+                },
+                error: () => { }
+            });
+        }
+
+        //Index呈現的畫面(學生資料列表),透過傳參數(typeID)，只呈現某一個類型資料
+        //controller改成要傳參數，並使用where
+        function getSampleList(typeID, typeName) {
+            $.ajax({
+                type: "Get",
+                url: `http://localhost:5042/apiSamples?typeID=${typeID}`,
+                success: (data) => {
+                    $('#SampleList>tbody').empty();
+                    //在樣本資料List上方加上標題(靠傳參數得到typeName)
+                    $('#sampleTitle').text(typeName + "資料管理");
+                    //給隱藏欄位值
+                    $('#typeID').val(typeID);
+                    $('#typeName').val(typeName);
+                    let trItem = "";
+                    //處理沒有樣本資料時的畫面
+                    if (data.length == 0) {
+                        trItem = `<tr><td colspan="6"><h3 class="text-danger">目前尚無樣本資料</h3></td></tr>`
+                        $('#SampleList tbody').append(trItem);
+                        return;
+                    }
+                    //讀取每個欄位顯示的值
+                    for (var item of data) {
+                        trItem = `<tr>
+                                      <td>${item.sampleName}</td>
+                                      <td>${item.species == null ? "" : item.species}</td>
+                                      <td>${item.genotype == null ? "" : item.genotype}</td>
+                                      <td>${item.serotype == null ? "" : item.serotype}</td>
+                                      <td>${item.quantity}</td>
+                                      <td>
+                                          <button class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#dataManageModal" onclick="editData('${item.sampleID}')">編輯</button>
+                                          <button class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#dataManageModal" onclick="getDetailData('${item.sampleID}')">詳細資料</button>
+                                      </td>
+                                  </tr>`
+                        $('#SampleList tbody').append(trItem);
+                    }
+                },
+                error: () => { }
+            });
+        }
+
+        //下拉式選單,傳參數用來決定停在哪一個類型
+        function getSampleListForModify(typeID) {
+            let a = "";
+            $.ajax({
+                type: "Get",
+                url: "http://localhost:5042/apiSampleTypes",
+                success: (data) => {
+                    $('#TypeID').empty();
+                    let trItem = "";
+                    for (let item of data) {
+                        a = typeID == item.typeID ? "selected" : "";
+                        trItem = `
+                                     <option value="${item.typeID}" ${a}>${item.typeID}-${item.typeName}</option>
+                            `
+                        $('#TypeID').append(trItem);
+                    }
+                },
+                error: () => { }
+            });
+        }
+
+        //新增資料
+        function createData() {
+            const jsonData = {
+                /*SampleID: $('#SampleID').val()  因為ID是自動給號不用傳*/
+                SampleName: $('#SampleName').val(),
+                Species: $('#Species').val() == "" ? null : $('#Species').val(),
+                Genotype: $('#Genotype').val() == "" ? null : $('#Genotype').val(),
+                Serotype: $('#Serotype').val() == "" ? null : $('#Serotype').val(),
+                Quantity: $('#Quantity').val(),
+                Refrigerator: $('#Refrigerator').val(),
+                Level: $('#Level').val(),
+                Shelf: $('#Shelf').val(),
+                Box: $('#Box').val(),
+                BoxName: $('#BoxName').val(),
+                TypeID: $('#TypeID').val()
+            }
+            console.log(jsonData);
+            $.ajax({
+                type: "Post",
+                url: "http://localhost:5042/apiSamples",
+                data: JSON.stringify(jsonData),
+                contentType: "application/json",
+                success: (data) => {
+                    console.log(data);
+                    dataManageModal.hide();
+                    getSampleList($('#typeID').val(), $('#typeName').val());
+                },
+                error: () => { }
+            });
+        }
+
+        //查看詳細資料
+        function getDetailData(id) {
+            $.ajax({
+                type: "Get",
+                url: `http://localhost:5042/apiSamples/${id}`,
+                success: (data) => {
+                    console.log(data);
+                    let detailItem = `
+                                        <div class="card col-md mt-3">
+                                            <div class="card-header text-center bg-success m-2 fw-bold text-white fs-5 border">
+                                                <div>${data.sampleName}</div>
+                                            </div>
+                                            <div class="card-body border mx-2 mb-2">
+                                            <h6>物種：${data.species == null ? "" : data.species}</h6>
+                                            <h6>基因型：${data.genotype == null ? "" : data.genotype}</h6>
+                                            <h6>血清型：${data.serotype == null ? "" : data.serotype}</h6>
+                                            <h6>數量：${data.quantity}</h6>
+                                            <h6>存放位置：${data.refrigerator}，${data.level}，${data.shelf}，${data.box}</h6>
+                                             <h6>盒子名稱：${data.boxName}</h6>
+                                            </div>
+                                        </div>
+                        `
+                    $('#dataManageModal .modal-body').html(detailItem);
+                    $('#dataManageModal .modal-title').text("樣本詳細資料");
+                    $('#btnUpdate').addClass("btn-danger").text("刪除").attr("onclick", `deleteData('${id}')`);
+                },
+                error: () => { }
+            });
+        }
+
+        //刪除資料
+        function deleteData(id) {
+            $.ajax({
+                type: "Delete",
+                url: `http://localhost:5042/apiSamples/${id}`,
+                success: () => {
+                    dataManageModal.hide();
+                    getSampleList($('#typeID').val(), $('#typeName').val());
+                },
+                error: () => { }
+            });
+        }
+
+        //編輯資料-get
+        function editData(id) {
+            $.ajax({
+                type: "Get",
+                url: `http://localhost:5042/apiSamples/${id}`,
+                success: (data) => {
+                    $('#dataManageModal .modal-title').text("編輯樣本資料");
+                    $('#btnUpdate').addClass("btn-success").text("確定變更").attr("onclick", `updateData('${id}')`);
+                    //把值帶入欄位中(包含隱藏欄位)
+                    $('#SampleID').val(data.sampleID);
+                    $('#SampleName').val(data.sampleName);
+                    $('#Species').val(data.species);
+                    $('#Genotype').val(data.genotype);
+                    $('#Serotype').val(data.serotype);
+                    $('#Quantity').val(data.quantity);
+                    $('#Refrigerator').val(data.refrigerator);
+                    $('#Level').val(data.level);
+                    $('#Shelf').val(data.shelf);
+                    $('#Box').val(data.box);
+                    $('#BoxName').val(data.boxName);
+                    $('#TypeID').val(data.typeID);
+                },
+                error: () => { }
+            });
+        }
+
+        //編輯資料-update
+        function updateData(id) {
+            const jsonData = {
+                SampleID: $('#SampleID').val(),
+                SampleName: $('#SampleName').val(),
+                Species: $('#Species').val() == "" ? null : $('#Species').val(),
+                Genotype: $('#Genotype').val() == "" ? null : $('#Genotype').val(),
+                Serotype: $('#Serotype').val() == "" ? null : $('#Serotype').val(),
+                Quantity: $('#Quantity').val(),
+                Refrigerator: $('#Refrigerator').val(),
+                Level: $('#Level').val(),
+                Shelf: $('#Shelf').val(),
+                Box: $('#Box').val(),
+                BoxName: $('#BoxName').val(),
+                TypeID: $('#TypeID').val()
+            }
+            $.ajax({
+                type: "Put",
+                url: `http://localhost:5042/apiSamples/${id}`,
+                data: JSON.stringify(jsonData),
+                contentType: "application/json",
+                success: () => {
+                    dataManageModal.hide();
+                    getSampleList($('#typeID').val(), $('#typeName').val());
+                },
+                error: (resp, error) => {
+                    console.log(resp);
+                    console.log(error);
+                }
+            });
+        }
+    </script>
+</body>
+</html>
+

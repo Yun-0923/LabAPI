@@ -1,0 +1,204 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>樣本類型管理</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+</head>
+<body>
+    <nav class="navbar navbar-expand-md navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="#">樣本管理系統</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" aria-current="page" href="/Samples/Index.html">樣本資料管理</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/SampleType/Index.html">類型管理</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="../CornonavirusForView/Index">新冠確診統計</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <div class="container mt-3">
+        <h2 class="text-success fw-bold">樣本類型管理</h2>
+        <button class="btn btn-primary my-3" data-bs-toggle="modal" data-bs-target="#dataManageModal">
+            新增樣本類型
+        </button>
+        <table class="table table-striped table-hover border border-1" id="TypeList">
+            <thead class="table-primary text-center border border-1 border-dark fw-bold">
+                <tr>
+                    <th>類型代碼</th>
+                    <th>類型名稱</th>
+                    <th>管理</th>
+                </tr>
+            </thead>
+            <tbody class="text-center">
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal fade" id="dataManageModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="exampleModalLabel"></h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn" id="btnUpdate"></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <script>
+        getSampleTypeList(); //初始化頁面
+
+        let modalForm = `
+                                <form id="dataManageForm">
+                                    <div class="mb-3">
+                                        <input type="hidden" class="form-control" id="TypeID" name="TypeID" />
+                                        <span asp-validation-for="TypeID" class="text-danger"></span>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="TypeName" class="form-label">類型名稱</label>
+                                        <input type="text" class="form-control" id="TypeName" name="TypeName"/>
+                                        <span asp-validation-for="TypeName" class="text-danger"></span>
+                                    </div>
+                                </form>`
+
+        const dataManageModalEl = document.getElementById('dataManageModal');
+        const dataManageModal = new bootstrap.Modal(dataManageModalEl);
+
+        //按下新增類型按鈕後，modal視窗出現的內容 (監聽modal出現時)
+        dataManageModalEl.addEventListener('show.bs.modal', event => {
+            $('#dataManageModal .modal-title').text("新增樣本類型資料");
+            $('#dataManageModal .modal-body').html(modalForm);
+            $('#btnUpdate').addClass("btn-primary").text("確定新增").attr("onclick", "createData()");
+        })
+
+        //Index呈現的畫面
+        function getSampleTypeList() {
+            $.ajax({
+                type: "Get",
+                url: "http://localhost:5042/apiSampleTypes",
+                success: (data) => {
+                    /*console.log(data);*/
+                    $('#TypeList>tbody').empty();
+                    let trItem = "";
+                    for (var item of data) {
+                        trItem = `<tr>
+                                                        <td>${item.typeID}</td>
+                                                        <td>${item.typeName}</td>
+                                                        <td>
+                                                            <button class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#dataManageModal" onclick="editData('${item.typeID}')">編輯</button>
+                                                            <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#dataManageModal" onclick="setData('${item.typeID}','${item.typeName}')">刪除</button>
+                                                        </td>
+                                                    </tr>`
+                        $('#TypeList tbody').append(trItem);
+                    }
+                },
+                error: () => { }
+            });
+        }
+
+        //新增資料
+        function createData() {
+            const jsonData = {
+                TypeName: $('#TypeName').val()
+            }
+
+            $.ajax({
+                type: "Post",
+                url: "http://localhost:5042/apiSampleTypes",
+                data: JSON.stringify(jsonData),
+                contentType: "application/json",
+                success: (data) => {
+                    console.log(data);
+                    dataManageModal.hide();
+                    getSampleTypeList();
+                },
+                error: () => { }
+            });
+        }
+
+        //編輯資料-get
+        function editData(id) {
+            $.ajax({
+                type: "Get",
+                url: `http://localhost:5042/apiSampleTypes/${id}`,
+                success: (data) => {
+                    /*console.log(data);*/
+                    $('#dataManageModal .modal-title').text("編輯樣本類型資料");
+                    $('#btnUpdate').addClass("btn-success").text("確定變更").attr("onclick", `updateData('${id}')`);
+                    //把值帶入欄位中
+                    $('#TypeID').val(data.typeID);
+                    $('#TypeName').val(data.typeName);
+                },
+                error: () => { }
+            });
+        }
+        //編輯資料-update
+        function updateData(id) {
+            const jsonData = {
+                typeID: $('#TypeID').val(),
+                typeName: $('#TypeName').val()
+            }
+            $.ajax({
+                type: "Put",
+                url: `http://localhost:5042/apiSampleTypes/${id}`,
+                data: JSON.stringify(jsonData),
+                contentType: "application/json",
+                success: (data) => {
+                    console.log(data);
+
+                    dataManageModal.hide();
+                    getSampleTypeList();
+                },
+                error: () => { }
+            });
+        }
+
+        //刪除鈕-獲取id並跳出警示文字
+        function setData(id, name) {
+            $('#dataManageModal .modal-title').text("刪除樣本類型資料");
+            $('#dataManageModal .modal-body').html(`<h2 class="text-danger">確定刪除【${id}, ${name}】此筆資料嗎?</h2>`);
+            $('#btnUpdate').addClass("btn-danger").text("確定刪除").attr("onclick", `deleteData('${id}')`);
+        }
+
+        //刪除資料
+        function deleteData(id) {
+            $.ajax({
+                type: "Delete",
+                url: `http://localhost:5042/apiSampleTypes/${id}`,
+                success: () => {
+                    dataManageModal.hide();
+                    getSampleTypeList();
+                },
+                error: (resp) => {
+                    console.log(resp);
+                }
+            });
+        }
+    </script>
+</body>
+</html>
+
